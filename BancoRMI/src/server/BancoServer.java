@@ -10,10 +10,8 @@ public class BancoServer {
 	public BancoServer() {
         System.setProperty("java.rmi.server.hostname","192.168.15.7");
         try {
-            BancoInterface c = new BancoImpl();
             UsuarioService user = new UsuarioSerivceImpl();
             Registry reg = LocateRegistry.createRegistry(1099);
-            reg.rebind("BancoService", c);
             reg.rebind("UsuarioService", user);
             System.out.println("Servidor rodando");
         } catch (Exception e) {

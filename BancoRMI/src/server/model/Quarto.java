@@ -10,11 +10,11 @@ public class Quarto implements Serializable{
   private static final long serialVersionUID = 1L;
   
   private Long id;
-  private Hotel hotel;
   private Integer numeroQuarto;
   private BigDecimal diaria;
   private TipoQuartoEnum tipo;
-  private boolean disponivel; 
+  private boolean disponivel;
+  private String cpf_usuario;
 
   public void setNumeroQuarto(Integer numero){
     this.numeroQuarto = numero;

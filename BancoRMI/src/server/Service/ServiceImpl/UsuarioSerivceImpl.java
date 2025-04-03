@@ -1,5 +1,6 @@
 package server.Service.ServiceImpl;
 
+import java.math.BigDecimal;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
@@ -11,6 +12,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import server.Service.UsuarioService;
 import server.model.Quarto;
@@ -56,7 +58,7 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
         }
 
         // Se o usuário não existir, insere o novo usuário
-        String sql = "INSERT INTO usuario (nome, cpf, tipo_perfil) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO usuario (nome, cpf, tipoPerfil) VALUES (?, ?, ?)";
         stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         stmt.setString(1, nome);
         stmt.setString(2, cpf);
@@ -87,28 +89,99 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
     @Override
     public List<Quarto> consultarQuartosDisponveis(Date data) {
         List<Quarto> quartos = new ArrayList<>();
-        String sql = "SELECT qrt.numero_quarto , qrt.tipo_quarto FROM " + 
-            "reserva rsv " + 
-            " JOIN quarto qrt ON rsv.quarto_id = qrt.id " +
-            " WHERE rsv.data_saida < ? " + 
-            "AND rsv.status = 'CONCLUIDA'";
+        String sql = "SELECT q.* " +
+                    "FROM quarto q " +
+                    "LEFT JOIN reserva r ON q.id = r.id_quarto " +
+                    "AND r.status != 'CANCELADA' " +
+                    "AND r.dataEntrada <= ? AND r.dataSaida >= ? " +
+                    "WHERE q.disponivel = TRUE " +
+                    "AND r.id IS NULL";
 
         try {
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setDate(1,new  java.sql.Date(data.getTime()));
+            stmt.setDate(1, new java.sql.Date(data.getTime()));
+            stmt.setDate(2, new java.sql.Date(data.getTime()));
             ResultSet rs = stmt.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 Quarto quarto = new Quarto();
-                quarto.setNumeroQuarto(rs.getInt("numero_quarto"));
-                quarto.setTipoQuartoEnum(rs.getString("tipo_quarto"));
+                quarto.setNumeroQuarto(rs.getInt("numeroQuarto")); // ou "numero_quarto" dependendo do nome real
+                quarto.setTipoQuartoEnum(rs.getString("tipo"));     // ou "tipo_quarto"
                 quartos.add(quarto);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return quartos;
-        
     }
+
+    @Override
+    public String fazerReserva(Date dataEntrada, Date dataSaida, String cpf, int numeroQuarto) throws RemoteException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+    
+        try {
+            String sql = "SELECT q.id, q.diaria  " +
+                         "FROM quarto q " +
+                         "LEFT JOIN reserva r ON q.id = r.id_quarto " +
+                         "AND r.status != 'CANCELADA' " +
+                         "AND NOT (r.dataSaida <= ? OR r.dataEntrada >= ?) " +
+                         "WHERE q.disponivel = TRUE " +
+                         "AND q.numeroQuarto = ? " +
+                         "AND r.id IS NULL";
+    
+            stmt = conn.prepareStatement(sql);
+            stmt.setDate(1, new java.sql.Date(dataEntrada.getTime())); // data de entrada nova reserva
+            stmt.setDate(2, new java.sql.Date(dataSaida.getTime()));   // data de saída nova reserva
+            stmt.setInt(3, numeroQuarto);
+    
+            rs = stmt.executeQuery();
+    
+            if (rs.next()) {
+                int idQuarto = rs.getInt("id");
+                BigDecimal diariaTotal = rs.getBigDecimal("diaria");
+
+    
+                // Quarto disponível - agora inserir a reserva
+                String insertSql = "INSERT INTO reserva (dataEntrada, dataSaida, cpf_usuario , id_quarto, valorTotal, status) " +
+                                   "VALUES (?, ?, ?, ?, ?, 'ATIVA')";
+    
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setDate(1, new java.sql.Date(dataEntrada.getTime()));
+                    insertStmt.setDate(2, new java.sql.Date(dataSaida.getTime()));
+                    insertStmt.setString(3, cpf);
+                    insertStmt.setInt(4, idQuarto);
+                    BigDecimal totalDiaria = valorTotalDiaria(dataEntrada, dataSaida, diariaTotal);
+                    insertStmt.setBigDecimal(5, totalDiaria);
+
+                    insertStmt.executeUpdate();
+                }
+    
+                return "Reserva realizada com sucesso para o quarto " + numeroQuarto;
+    
+            } else {
+                return "Quarto não disponível para o período selecionado.";
+            }
+    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Erro ao realizar reserva: " + e.getMessage();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (stmt != null) stmt.close(); } catch (Exception e) {}
+            try { if (conn != null) conn.close(); } catch (Exception e) {}
+        }
+    }
+
+    private BigDecimal valorTotalDiaria(Date dataEntrda, Date dataSaida, BigDecimal diaria){
+        long diffInMillis = dataSaida.getTime() - dataEntrda.getTime();
+        long dias = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS);
+
+        
+        BigDecimal total = diaria.multiply(new BigDecimal(dias));
+
+        return total;
+    }
+    
 
   
 }
