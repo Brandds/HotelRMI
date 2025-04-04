@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import server.model.Quarto;
+import server.model.Reserva;
 
 public interface UsuarioService extends Remote {
   String cadastrar(String nome, String cpf, String tipoPerfil) throws RemoteException;
@@ -16,4 +17,5 @@ public interface UsuarioService extends Remote {
   String buscarReserva(String cpf) throws RemoteException;
   String cancelarReserva(Long id) throws RemoteException;
   String cadastrarQuarto(int numeroQuarto, BigDecimal valorDiaria, int tipo) throws RemoteException;
+  List<Reserva> listarReservas() throws RemoteException;
 }

@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import server.Enum.StatusReservaEnum;
 import server.Service.UsuarioService;
 import server.model.Quarto;
 import server.model.Reserva;
@@ -310,6 +311,51 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
             }
         }
     }
+
+    @Override
+    public List<Reserva> listarReservas() throws RemoteException {
+        List<Reserva> listReserva = new ArrayList<>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+    
+        try {
+            String sql = "SELECT * FROM reserva";
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+    
+            while (rs.next()) {
+                Reserva reserva = new Reserva();
+                
+                
+                reserva.setCpfUsuario(rs.getString("cpf_usuario")); 
+                reserva.setDataEntrada(rs.getDate("dataEntrada"));
+                reserva.setDataSaida(rs.getDate("dataSaida"));
+                
+                String statusStr = rs.getString("status");  
+                reserva.setStatus(StatusReservaEnum.valueOf(statusStr));  
+                
+                reserva.setValorTotal(rs.getBigDecimal("valorTotal"));
+                
+                
+                listReserva.add(reserva);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            
+            throw new RemoteException("Erro ao listar reservas", e);
+        } finally {
+            
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace(); 
+            }
+        }
+    
+        return listReserva;
+    }
+    
 
 
 }

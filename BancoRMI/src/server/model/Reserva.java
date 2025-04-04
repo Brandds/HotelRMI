@@ -1,11 +1,12 @@
 package server.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
 import server.Enum.StatusReservaEnum;
 
-public class Reserva {
+public class Reserva  implements Serializable{
     private static final long serialVersionUID = 1L;
     
     private Long id;

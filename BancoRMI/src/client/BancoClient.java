@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 import server.Service.UsuarioService;
 import server.model.Quarto;
+import server.model.Reserva;
 
 public class BancoClient {
 	public static void main(String[] args) {
@@ -25,7 +26,8 @@ public class BancoClient {
 						System.out.println("4 - Quartos disponiveis");
 						System.out.println("5 - Buscar sua reserva");
 						System.out.println("6 - Cancelar a reserva");
-						System.out.println("6 - Cadastrar novo quarto");
+						System.out.println("7 - Cadastrar novo quarto");
+						System.out.println("8 - Lista reservas");
 						int opcao = s.nextInt();
 						s.nextLine();
 
@@ -134,6 +136,12 @@ public class BancoClient {
 
 									System.out.println(user.cadastrarQuarto(numeroQuarto, diaria, tipoQuarto));
 
+									break;
+								case 8:
+									List<Reserva> reservas = user.listarReservas();
+									for(Reserva reserva : reservas){
+										System.out.println("Cliente:" + reserva.getCpfUsuario() + " Data checkin: " + reserva.getDataEntrada() + " Data check-out: " + reserva.getDataSaida() + " Status:" + reserva.getStatus() + " Valor estadia: " + reserva.getValorTotal());
+									}
 									break;
 
 									default:
