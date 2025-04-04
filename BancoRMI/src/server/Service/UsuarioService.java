@@ -1,5 +1,6 @@
 package server.Service;
 
+import java.math.BigDecimal;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Date;
@@ -12,4 +13,7 @@ public interface UsuarioService extends Remote {
   List<Quarto> consultarQuartosDisponveis(Date data)throws RemoteException;
   String fazerReserva(Date dataEntrada, Date dataSaida, String cpf, int quarto) throws RemoteException;
   List<Quarto> listarQuartosDisponiveis() throws RemoteException;
+  String buscarReserva(String cpf) throws RemoteException;
+  String cancelarReserva(Long id) throws RemoteException;
+  String cadastrarQuarto(int numeroQuarto, BigDecimal valorDiaria, int tipo) throws RemoteException;
 }

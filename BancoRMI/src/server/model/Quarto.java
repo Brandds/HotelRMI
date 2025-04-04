@@ -14,7 +14,6 @@ public class Quarto implements Serializable{
   private BigDecimal diaria;
   private TipoQuartoEnum tipo;
   private boolean disponivel;
-  private String cpf_usuario;
 
   public void setNumeroQuarto(Integer numero){
     this.numeroQuarto = numero;

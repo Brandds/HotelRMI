@@ -1,4 +1,5 @@
 package client;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -21,7 +22,10 @@ public class BancoClient {
 						System.out.println("1 - Cadastrar Cliente");
 						System.out.println("2 - Consultar Quartos disponveis");
 						System.out.println("3 - Fazer Reserva");
-						System.out.println("4 - Sacar Valor");
+						System.out.println("4 - Quartos disponiveis");
+						System.out.println("5 - Buscar sua reserva");
+						System.out.println("6 - Cancelar a reserva");
+						System.out.println("6 - Cadastrar novo quarto");
 						int opcao = s.nextInt();
 						s.nextLine();
 
@@ -90,9 +94,49 @@ public class BancoClient {
 										e.printStackTrace();
 									}
 									break;
+							case 4:
+							for(Quarto quarto : user.listarQuartosDisponiveis()){
+								System.out.println("Numero quarto: " + " " + quarto.getNumeroQuarto());
+							}
+									break;
+							case 5:
+									System.out.println("Digite seu CPF:");
+									String userCpf = s.nextLine();
+									System.out.println(user.buscarReserva(userCpf));
+									break;
+							case 6:
+							System.out.println("Digite o identificador da reserva para cancelar:");
+							String idStr = s.nextLine(); 
 							
-								
-								default:
+							try {
+									Long id = Long.parseLong(idStr); 
+									
+									String resultado = user.cancelarReserva(id);
+									System.out.println(resultado);
+							} catch (NumberFormatException e) {
+									System.out.println("Erro: O identificador fornecido não é um número válido.");
+							}
+							
+									break;
+							case 7:
+									System.out.println("Digite o numero do quarto:");
+									int numeroQuarto = s.nextInt();
+
+									s.nextLine();
+
+									System.out.println("Digite o valor da diaria do quarto:");
+									String diariaStr = s.nextLine(); 
+
+									BigDecimal diaria = new BigDecimal(diariaStr);
+
+									System.out.println("Digite o tipo de quarto 1-SIMPLES 2-DUPLO 3-SUITE");
+									int tipoQuarto = s.nextInt();
+
+									System.out.println(user.cadastrarQuarto(numeroQuarto, diaria, tipoQuarto));
+
+									break;
+
+									default:
 								break;
 						}
 						s.close();

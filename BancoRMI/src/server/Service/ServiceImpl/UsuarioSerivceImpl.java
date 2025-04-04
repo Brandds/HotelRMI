@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import server.Service.UsuarioService;
 import server.model.Quarto;
+import server.model.Reserva;
 
 public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioService {
   private static final long serialVersionUID = 1L;
@@ -95,7 +96,7 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
                     "AND r.status != 'CANCELADA' " +
                     "AND r.dataEntrada <= ? AND r.dataSaida >= ? " +
                     "WHERE q.disponivel = TRUE " +
-                    "AND r.id IS NULL";
+                    "AND (r.id IS NULL OR r.id IS NOT NULL)";
 
         try {
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -201,8 +202,8 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Quarto quarto = new Quarto();
-                quarto.setNumeroQuarto(rs.getInt("numeroQuarto")); // ou "numero_quarto" dependendo do nome real
-                quarto.setTipoQuartoEnum(rs.getString("tipo"));     // ou "tipo_quarto"
+                quarto.setNumeroQuarto(rs.getInt("numeroQuarto")); 
+                quarto.setTipoQuartoEnum(rs.getString("tipo"));     
                 quartos.add(quarto);
             }
 
@@ -212,5 +213,103 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
 
         return quartos;
     }
+
+    @Override
+    public String buscarReserva(String cpf) {
+        PreparedStatement stmt = null;
+
+        Reserva reserva = new Reserva();
+       try {
+        String sql = "select * from reserva rsv where rsv.cpf_usuario = ? and rsv.status = 'ATIVA'";
+        stmt = conn.prepareStatement(sql);
+        stmt.setString(1, cpf);
+        ResultSet rs = stmt.executeQuery(); 
+        while (rs.next()) {
+            reserva.setCpfUsuario(rs.getString("cpf_usuario")); 
+            reserva.setDataSaida(rs.getDate("dataSaida"));
+            reserva.setDataEntrada(rs.getDate("dataEntrada"));
+            BigDecimal valorTotal = valorTotalDiaria(reserva.getDataEntrada(), reserva.getDataSaida(), rs.getBigDecimal("valorTotal"));
+            reserva.setValorTotal(valorTotal);
+        }
+        return reserva != null  && reserva.getCpfUsuario() != null ? "CPF: " + reserva.getCpfUsuario() + " Data checkin: " + reserva.getDataEntrada() + " Data check-out: " + reserva.getDataSaida() + " Valor da reserva: " + reserva.getValorTotal()  : "Não foi encontrado a reserva, por esse CPF digitado";
+       } catch (SQLException e) {
+        e.printStackTrace();
+        return "Erro ao busca reserva";
+       }
+    }
   
+    @Override
+    public String cancelarReserva(Long id) {
+        PreparedStatement stmt = null;
+
+        try {
+            String sql = "UPDATE reserva rsv SET status = 'Cancelado' WHERE rsv.id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, id);
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            
+            if (rowsAffected > 0) {
+                return "Reserva cancelada com sucesso!";
+            } else {
+                return "Reserva não encontrada ou já foi cancelada.";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  // Para debug
+            return "Erro ao cancelar a reserva: " + e.getMessage();
+        }
+    }
+
+    @Override
+    public String cadastrarQuarto(int numeroQuarto, BigDecimal valorDiaria, int tipo) throws RemoteException {
+        PreparedStatement stmt = null;
+        String tipoQuarto = null;
+        switch (tipo) {
+            case 1:
+                tipoQuarto = "SIMPLES";
+                break;
+            case 2:
+                tipoQuarto = "DUPLO";
+                break;
+            case 3:
+                tipoQuarto = "SUITE";
+            default:
+                return "Não foi possivel cadastrar um novo quarto, tipo de quarto indisponivel";
+        }
+        
+        try {
+            
+            String sql = "INSERT INTO quarto (numeroQuarto, diaria, tipo, disponivel) VALUES (?, ?, ?, 1)";
+            
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setInt(1, numeroQuarto); 
+            stmt.setBigDecimal(2, valorDiaria); 
+            stmt.setString(3, tipoQuarto); 
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            
+            if (rowsAffected > 0) {
+                return "Quarto cadastrado com sucesso!";
+            } else {
+                return "Erro ao cadastrar o quarto.";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Erro ao inserir um novo quarto: " + e.getMessage();
+        } finally {
+            try {
+                
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 }
