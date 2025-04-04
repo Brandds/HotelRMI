@@ -182,6 +182,35 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
         return total;
     }
     
+    @Override 
+    public List<Quarto> listarQuartosDisponiveis(){
+        List<Quarto> quartos = new ArrayList<>();
+        try {
+            Date data = new Date();
+            String sql = "SELECT q.* " +
+                    "FROM quarto q " +
+                    "LEFT JOIN reserva r ON q.id = r.id_quarto " +
+                    "AND r.status != 'CANCELADA' " +
+                    "AND r.dataEntrada <= ? AND r.dataSaida >= ? " +
+                    "WHERE q.disponivel = TRUE " +
+                    "AND r.id IS NULL";
+            
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setDate(1, new java.sql.Date(data.getTime()));
+            stmt.setDate(2, new java.sql.Date(data.getTime()));
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Quarto quarto = new Quarto();
+                quarto.setNumeroQuarto(rs.getInt("numeroQuarto")); // ou "numero_quarto" dependendo do nome real
+                quarto.setTipoQuartoEnum(rs.getString("tipo"));     // ou "tipo_quarto"
+                quartos.add(quarto);
+            }
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return quartos;
+    }
   
 }
