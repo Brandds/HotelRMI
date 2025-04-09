@@ -15,24 +15,39 @@ import server.model.Quarto;
 import server.model.Reserva;
 
 public class BancoClient {
+
+	public static void printWithColor(String text, String colorCode) {
+		System.out.print("\033[" + colorCode + "m" + text + "\033[0m");
+	}
 	public static void main(String[] args) {
 		try {
 						UsuarioService user = (UsuarioService) Naming.lookup("rmi://192.168.15.7/UsuarioService");
             
             Scanner s = new Scanner(System.in);
-						System.out.println("1 - Cadastrar Cliente");
-						System.out.println("2 - Consultar Quartos disponveis");
-						System.out.println("3 - Fazer Reserva");
-						System.out.println("4 - Quartos disponiveis");
-						System.out.println("5 - Buscar sua reserva");
-						System.out.println("6 - Cancelar a reserva");
-						System.out.println("7 - Cadastrar novo quarto");
-						System.out.println("8 - Lista reservas");
+						printWithColor("\n*************************************************\n", "1;33");
+            printWithColor("           Sistema de Reservas de Quartos\n", "1;32");
+            printWithColor("*************************************************\n", "1;33");
+            
+            // Menu interativo
+            printWithColor("\nEscolha uma opção abaixo (Digite o número):\n", "0;36");
+            
+            printWithColor("\n1 - Cadastrar Cliente\n", "0;34");
+            printWithColor("2 - Consultar Quartos Disponíveis\n", "0;34");
+            printWithColor("3 - Fazer Reserva\n", "0;34");
+            printWithColor("4 - Quartos Disponíveis\n", "0;34");
+            printWithColor("5 - Buscar Sua Reserva\n", "0;34");
+            printWithColor("6 - Cancelar a Reserva\n", "0;34");
+            printWithColor("7 - Cadastrar Novo Quarto\n", "0;34");
+            printWithColor("8 - Lista de Reservas\n", "0;34");
+            
+            printWithColor("\n-------------------------------------------------\n", "1;33");
 						int opcao = s.nextInt();
 						s.nextLine();
 
 						switch (opcao) {
 							case 1:
+								System.out.println("\nVocê escolheu: Cadastrar Cliente");
+
 								System.out.println("Digite seu NOME");
 								String nome = s.nextLine();  
 
@@ -50,6 +65,8 @@ public class BancoClient {
 								System.out.println(message);
 								break;
 							case 2:
+									System.out.println("\nVocê escolheu: Consultar Quartos Disponíveis");
+
 									try {
 										System.out.println("Digite a data de reserva:");
 										String dataStr = s.nextLine();
@@ -72,6 +89,8 @@ public class BancoClient {
 
 								break;
 							case 3:
+									System.out.println("\nVocê escolheu: Fazer Reserva");
+
 									try {
 										SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 										System.out.println("Digite o numero do quarto:");
@@ -97,16 +116,22 @@ public class BancoClient {
 									}
 									break;
 							case 4:
+							System.out.println("\nVocê escolheu: Consultar Quartos Disponíveis");
+
 							for(Quarto quarto : user.listarQuartosDisponiveis()){
 								System.out.println("Numero quarto: " + " " + quarto.getNumeroQuarto());
 							}
 									break;
 							case 5:
+									System.out.println("\nVocê escolheu: Buscar Sua Reserva");
+
 									System.out.println("Digite seu CPF:");
 									String userCpf = s.nextLine();
 									System.out.println(user.buscarReserva(userCpf));
 									break;
 							case 6:
+							System.out.println("\nVocê escolheu: Cancelar a Reserva");
+
 							System.out.println("Digite o identificador da reserva para cancelar:");
 							String idStr = s.nextLine(); 
 							
@@ -121,6 +146,7 @@ public class BancoClient {
 							
 									break;
 							case 7:
+									System.out.println("\nVocê escolheu: Cadastrar Novo Quarto");
 									System.out.println("Digite o numero do quarto:");
 									int numeroQuarto = s.nextInt();
 
@@ -137,14 +163,16 @@ public class BancoClient {
 									System.out.println(user.cadastrarQuarto(numeroQuarto, diaria, tipoQuarto));
 
 									break;
-								case 8:
+							case 8:
+									System.out.println("\nVocê escolheu: Lista de Reservas");
 									List<Reserva> reservas = user.listarReservas();
 									for(Reserva reserva : reservas){
 										System.out.println("Cliente:" + reserva.getCpfUsuario() + " Data checkin: " + reserva.getDataEntrada() + " Data check-out: " + reserva.getDataSaida() + " Status:" + reserva.getStatus() + " Valor estadia: " + reserva.getValorTotal());
 									}
 									break;
 
-									default:
+							default:
+									printWithColor("\nOpção inválida! Tente novamente.\n", "1;31");
 								break;
 						}
 						s.close();
