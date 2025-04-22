@@ -1,0 +1,19 @@
+cadastrar usuario:
+
+Nome:Jose silva
+CPF: 2 
+Tipo Perfil: 2
+
+
+Consultar Quartos disponiveis:
+
+Data: 2025-04-21
+
+Fazer Reserva
+
+Numero quarto: 
+
+
+
+
+

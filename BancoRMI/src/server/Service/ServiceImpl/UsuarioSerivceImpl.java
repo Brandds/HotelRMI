@@ -121,57 +121,60 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
         PreparedStatement stmt = null;
         ResultSet rs = null;
     
-        try {
-            String sql = "SELECT q.id, q.diaria  " +
-                         "FROM quarto q " +
-                         "LEFT JOIN reserva r ON q.id = r.id_quarto " +
-                         "AND r.status != 'CANCELADA' " +
-                         "AND NOT (r.dataSaida <= ? OR r.dataEntrada >= ?) " +
-                         "WHERE q.disponivel = TRUE " +
-                         "AND q.numeroQuarto = ? " +
-                         "AND r.id IS NULL";
+        if(existsByNumeroQuarto(numeroQuarto)){
+            try {
+                String sql = "SELECT q.id, q.diaria  " +
+                             "FROM quarto q " +
+                             "LEFT JOIN reserva r ON q.id = r.id_quarto " +
+                             "AND r.status != 'CANCELADA' " +
+                             "AND NOT (r.dataSaida <= ? OR r.dataEntrada >= ?) " +
+                             "WHERE q.disponivel = TRUE " +
+                             "AND q.numeroQuarto = ? " +
+                             "AND r.id IS NULL";
+        
+                stmt = conn.prepareStatement(sql);
+                stmt.setDate(1, new java.sql.Date(dataEntrada.getTime())); // data de entrada nova reserva
+                stmt.setDate(2, new java.sql.Date(dataSaida.getTime()));   // data de saída nova reserva
+                stmt.setInt(3, numeroQuarto);
+        
+                rs = stmt.executeQuery();
+        
+                if (rs.next()) {
+                    int idQuarto = rs.getInt("id");
+                    BigDecimal diariaTotal = rs.getBigDecimal("diaria");
     
-            stmt = conn.prepareStatement(sql);
-            stmt.setDate(1, new java.sql.Date(dataEntrada.getTime())); // data de entrada nova reserva
-            stmt.setDate(2, new java.sql.Date(dataSaida.getTime()));   // data de saída nova reserva
-            stmt.setInt(3, numeroQuarto);
+        
+                    // Quarto disponível - agora inserir a reserva
+                    String insertSql = "INSERT INTO reserva (dataEntrada, dataSaida, cpf_usuario , id_quarto, valorTotal, status) " +
+                                       "VALUES (?, ?, ?, ?, ?, 'ATIVA')";
+        
+                    try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                        insertStmt.setDate(1, new java.sql.Date(dataEntrada.getTime()));
+                        insertStmt.setDate(2, new java.sql.Date(dataSaida.getTime()));
+                        insertStmt.setString(3, cpf);
+                        insertStmt.setInt(4, idQuarto);
+                        BigDecimal totalDiaria = valorTotalDiaria(dataEntrada, dataSaida, diariaTotal);
+                        insertStmt.setBigDecimal(5, totalDiaria);
     
-            rs = stmt.executeQuery();
-    
-            if (rs.next()) {
-                int idQuarto = rs.getInt("id");
-                BigDecimal diariaTotal = rs.getBigDecimal("diaria");
-
-    
-                // Quarto disponível - agora inserir a reserva
-                String insertSql = "INSERT INTO reserva (dataEntrada, dataSaida, cpf_usuario , id_quarto, valorTotal, status) " +
-                                   "VALUES (?, ?, ?, ?, ?, 'ATIVA')";
-    
-                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                    insertStmt.setDate(1, new java.sql.Date(dataEntrada.getTime()));
-                    insertStmt.setDate(2, new java.sql.Date(dataSaida.getTime()));
-                    insertStmt.setString(3, cpf);
-                    insertStmt.setInt(4, idQuarto);
-                    BigDecimal totalDiaria = valorTotalDiaria(dataEntrada, dataSaida, diariaTotal);
-                    insertStmt.setBigDecimal(5, totalDiaria);
-
-                    insertStmt.executeUpdate();
+                        insertStmt.executeUpdate();
+                    }
+        
+                    return "Reserva realizada com sucesso para o quarto " + numeroQuarto;
+        
+                } else {
+                    return "Quarto não disponível para o período selecionado.";
                 }
-    
-                return "Reserva realizada com sucesso para o quarto " + numeroQuarto;
-    
-            } else {
-                return "Quarto não disponível para o período selecionado.";
+        
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Erro ao realizar reserva: " + e.getMessage();
+            } finally {
+                try { if (rs != null) rs.close(); } catch (Exception e) {}
+                try { if (stmt != null) stmt.close(); } catch (Exception e) {}
+                try { if (conn != null) conn.close(); } catch (Exception e) {}
             }
-    
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Erro ao realizar reserva: " + e.getMessage();
-        } finally {
-            try { if (rs != null) rs.close(); } catch (Exception e) {}
-            try { if (stmt != null) stmt.close(); } catch (Exception e) {}
-            try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
+        return "Não existe Quarto";
     }
 
     private BigDecimal valorTotalDiaria(Date dataEntrda, Date dataSaida, BigDecimal diaria){
@@ -355,7 +358,26 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
     
         return listReserva;
     }
-    
+
+    private boolean existsByNumeroQuarto(int number){
+        PreparedStatement checkStmt = null;
+        ResultSet checkRs = null;
+        try {
+            String quarto = "select COUNT(*) from quarto where numeroQuarto = ? ";
+
+        checkStmt = conn.prepareStatement(quarto);
+        checkStmt.setInt(1, number);
+        checkRs = checkStmt.executeQuery();
+
+        if (checkRs.next() && checkRs.getInt(1) > 0) {
+            return true;
+        }
+
+        return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 
 }

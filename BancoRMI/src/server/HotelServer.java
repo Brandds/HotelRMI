@@ -6,8 +6,8 @@ import java.rmi.registry.Registry;
 import server.Service.UsuarioService;
 import server.Service.ServiceImpl.UsuarioSerivceImpl;
 
-public class BancoServer {
-	public BancoServer() {
+public class HotelServer {
+	public HotelServer() {
         System.setProperty("java.rmi.server.hostname","192.168.15.7");
         try {
             UsuarioService user = new UsuarioSerivceImpl();
@@ -20,7 +20,7 @@ public class BancoServer {
     }
 
     public static void main(String args[]) {
-        new BancoServer();
+        new HotelServer();
     }
 
 }

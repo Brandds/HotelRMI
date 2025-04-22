@@ -14,11 +14,27 @@ import server.Service.UsuarioService;
 import server.model.Quarto;
 import server.model.Reserva;
 
-public class BancoClient {
+public class HotelClient {
 
 	public static void printWithColor(String text, String colorCode) {
 		System.out.print("\033[" + colorCode + "m" + text + "\033[0m");
 	}
+	public static void limparTela() {
+    // Limpa a tela dependendo do sistema operacional
+    try {
+        if (System.getProperty("os.name").contains("Windows")) {
+            // Limpa a tela no Windows
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        } else {
+            // Limpa a tela no Unix/Linux/Mac
+            System.out.print("\033[H\033[2J");
+            System.out.flush();
+        }
+    } catch (Exception e) {
+        System.out.println("Erro ao tentar limpar a tela: " + e.getMessage());
+    }
+}
+
 	public static void main(String[] args) {
 		try {
 						UsuarioService user = (UsuarioService) Naming.lookup("rmi://192.168.15.7/UsuarioService");
@@ -60,7 +76,7 @@ public class BancoClient {
 
 							
 								String tipoPerfil = (intPerfil == 1) ? "ADMIN" : "USER";
-
+								limparTela();
 								String message = user.cadastrar(nome, cpf, tipoPerfil);
 								System.out.println(message);
 								break;
@@ -72,7 +88,7 @@ public class BancoClient {
 										String dataStr = s.nextLine();
 										SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 										Date data = sdf.parse(dataStr); // Converte a string para Date
-				
+										limparTela();
 										List<Quarto> list = user.consultarQuartosDisponveis(data);
 
 										if(!list.isEmpty()){
@@ -107,7 +123,7 @@ public class BancoClient {
 										System.out.println("Digite a data de saída:");
 										String dataSaida = s.nextLine();
 										Date dataSaidaConvert = sdf.parse(dataSaida);
-
+										limparTela();
 										String response = user.fazerReserva(dataEntradaConvert, dataSaidaConvert, cpfUsuario, numeroQuarto);
 										System.out.println(response);
 
@@ -117,7 +133,7 @@ public class BancoClient {
 									break;
 							case 4:
 							System.out.println("\nVocê escolheu: Consultar Quartos Disponíveis");
-
+							limparTela();
 							for(Quarto quarto : user.listarQuartosDisponiveis()){
 								System.out.println("Numero quarto: " + " " + quarto.getNumeroQuarto());
 							}
@@ -127,6 +143,7 @@ public class BancoClient {
 
 									System.out.println("Digite seu CPF:");
 									String userCpf = s.nextLine();
+									limparTela();
 									System.out.println(user.buscarReserva(userCpf));
 									break;
 							case 6:
@@ -137,7 +154,7 @@ public class BancoClient {
 							
 							try {
 									Long id = Long.parseLong(idStr); 
-									
+									limparTela();
 									String resultado = user.cancelarReserva(id);
 									System.out.println(resultado);
 							} catch (NumberFormatException e) {
@@ -159,12 +176,13 @@ public class BancoClient {
 
 									System.out.println("Digite o tipo de quarto 1-SIMPLES 2-DUPLO 3-SUITE");
 									int tipoQuarto = s.nextInt();
-
+									limparTela();
 									System.out.println(user.cadastrarQuarto(numeroQuarto, diaria, tipoQuarto));
 
 									break;
 							case 8:
 									System.out.println("\nVocê escolheu: Lista de Reservas");
+									limparTela();
 									List<Reserva> reservas = user.listarReservas();
 									for(Reserva reserva : reservas){
 										System.out.println("Cliente:" + reserva.getCpfUsuario() + " Data checkin: " + reserva.getDataEntrada() + " Data check-out: " + reserva.getDataSaida() + " Status:" + reserva.getStatus() + " Valor estadia: " + reserva.getValorTotal());
@@ -188,4 +206,6 @@ public class BancoClient {
         }
         
     }
-}
+
+	
+	}
