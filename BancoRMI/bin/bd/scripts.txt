@@ -1,0 +1,39 @@
+CREATE TABLE `quarto` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `numeroQuarto` int NOT NULL,
+  `diaria` decimal(10,2) NOT NULL,
+  `tipo` varchar(50) NOT NULL,
+  `disponivel` tinyint(1) NOT NULL,
+  `cpf_usuario` varchar(14) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_usuario_quarto` (`cpf_usuario`),
+  CONSTRAINT `fk_usuario_quarto` FOREIGN KEY (`cpf_usuario`) REFERENCES `usuario` (`cpf`)
+) 
+
+
+CREATE TABLE `usuario` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `nome` varchar(255) NOT NULL,
+  `cpf` varchar(14) NOT NULL,
+  `tipoPerfil` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cpf` (`cpf`)
+) 
+
+CREATE TABLE `reserva` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `cpf_usuario` varchar(14) NOT NULL,
+  `id_quarto` bigint NOT NULL,
+  `dataEntrada` date NOT NULL,
+  `dataSaida` date NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `valorTotal` decimal(10,2) NOT NULL,
+  `id_reserva` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_usuario_reserva` (`cpf_usuario`),
+  KEY `fk_quarto_reserva` (`id_quarto`),
+  CONSTRAINT `fk_quarto_reserva` FOREIGN KEY (`id_quarto`) REFERENCES `quarto` (`id`),
+  CONSTRAINT `fk_usuario_reserva` FOREIGN KEY (`cpf_usuario`) REFERENCES `usuario` (`cpf`)
+) 
+
+
