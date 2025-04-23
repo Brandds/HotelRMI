@@ -4,7 +4,10 @@ CREATE TABLE `quarto` (
   `diaria` decimal(10,2) NOT NULL,
   `tipo` varchar(50) NOT NULL,
   `disponivel` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`)
+  `cpf_usuario` varchar(14) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_usuario_quarto` (`cpf_usuario`),
+  CONSTRAINT `fk_usuario_quarto` FOREIGN KEY (`cpf_usuario`) REFERENCES `usuario` (`cpf`)
 ) 
 
 

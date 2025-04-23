@@ -392,6 +392,7 @@ public String cadastrarQuarto(int numeroQuarto, BigDecimal valorDiaria, int tipo
 
         return false;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }

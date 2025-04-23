@@ -1,0 +1,24 @@
+Cadastrar cliente:
+nome:Jose
+cpf:1234567
+usuario: 2
+
+Consultar quartos:
+data: 2025-05-30
+
+Fazer reserva:
+CPF: 15045987682
+data entrada: 2025-04-20
+data saida: 2025-04-25
+numero quarto:102
+
+Consultar reserva:
+cpf:15045987682
+
+Cancelar reserva:
+identificado: 1
+
+Criar Quarto:
+numeroQuarto: 104
+valor diaria: 50
+tipo quarto: 1,2 ou 3
