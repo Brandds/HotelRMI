@@ -37,7 +37,7 @@ public class HotelClient {
 
 	public static void main(String[] args) {
 		try {
-						UsuarioService user = (UsuarioService) Naming.lookup("rmi://192.168.15.7/UsuarioService");
+						UsuarioService user = (UsuarioService) Naming.lookup("rmi://192.168.15.15/UsuarioService");
             
             Scanner s = new Scanner(System.in);
 						printWithColor("\n*************************************************\n", "1;33");

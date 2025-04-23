@@ -1,0 +1,16 @@
+INSERT INTO `quarto` (`numeroQuarto`, `diaria`, `tipo`, `disponivel`) VALUES
+(101, 150.00, 'SIMPLES', 1),
+(102, 200.00, 'DUPLO', 1),
+(103, 300.00, 'SUITE', 1);
+
+
+INSERT INTO `usuario` (`nome`, `cpf`, `tipoPerfil`) VALUES
+('João Silva', '123.456.789-00', 'USER'),
+('Maria Oliveira', '987.654.321-00', 'ADMIN'),
+('Carlos Souza', '111.222.333-44', 'USER');
+
+
+INSERT INTO `reserva` (`cpf_usuario`, `id_quarto`, `dataEntrada`, `dataSaida`, `status`, `valorTotal`) VALUES
+('123.456.789-00', 1, '2025-04-25', '2025-04-28', 'Confirmada', 450.00),
+('987.654.321-00', 2, '2025-04-26', '2025-04-29', 'Cancelado', 600.00),
+('111.222.333-44', 3, '2025-04-27', '2025-04-30', 'Concluído', 900.00);

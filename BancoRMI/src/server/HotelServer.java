@@ -8,7 +8,7 @@ import server.Service.ServiceImpl.UsuarioSerivceImpl;
 
 public class HotelServer {
 	public HotelServer() {
-        System.setProperty("java.rmi.server.hostname","192.168.15.7");
+        System.setProperty("java.rmi.server.hostname","192.168.15.15");
         try {
             UsuarioService user = new UsuarioSerivceImpl();
             Registry reg = LocateRegistry.createRegistry(1099);

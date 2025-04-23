@@ -266,54 +266,71 @@ public class UsuarioSerivceImpl extends UnicastRemoteObject implements UsuarioSe
     }
 
     @Override
-    public String cadastrarQuarto(int numeroQuarto, BigDecimal valorDiaria, int tipo) throws RemoteException {
-        PreparedStatement stmt = null;
-        String tipoQuarto = null;
-        switch (tipo) {
-            case 1:
-                tipoQuarto = "SIMPLES";
-                break;
-            case 2:
-                tipoQuarto = "DUPLO";
-                break;
-            case 3:
-                tipoQuarto = "SUITE";
-            default:
-                return "Não foi possivel cadastrar um novo quarto, tipo de quarto indisponivel";
+public String cadastrarQuarto(int numeroQuarto, BigDecimal valorDiaria, int tipo) throws RemoteException {
+    PreparedStatement stmt = null;
+    ResultSet rs = null;  // Para armazenar o resultado da consulta
+    String tipoQuarto = null;
+    
+    // Definindo o tipo do quarto
+    switch (tipo) {
+        case 1:
+            tipoQuarto = "SIMPLES";
+            break;
+        case 2:
+            tipoQuarto = "DUPLO";
+            break;
+        case 3:
+            tipoQuarto = "SUITE";
+            break;
+        default:
+            return "Não foi possível cadastrar um novo quarto, tipo de quarto indisponível";
+    }
+
+    try {
+        // Verificar se o número do quarto já existe
+        String verificaQuartoSql = "SELECT COUNT(*) FROM quarto WHERE numeroQuarto = ?";
+        stmt = conn.prepareStatement(verificaQuartoSql);
+        stmt.setInt(1, numeroQuarto);
+        rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+            int count = rs.getInt(1);
+            if (count > 0) {
+                // Se count > 0, significa que o número do quarto já existe
+                return "Erro: O número do quarto já está cadastrado.";
+            }
         }
         
+        // Caso o número do quarto não exista, realiza o cadastro
+        String sql = "INSERT INTO quarto (numeroQuarto, diaria, tipo, disponivel) VALUES (?, ?, ?, 1)";
+        stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, numeroQuarto); 
+        stmt.setBigDecimal(2, valorDiaria); 
+        stmt.setString(3, tipoQuarto); 
+        
+        int rowsAffected = stmt.executeUpdate();
+        
+        if (rowsAffected > 0) {
+            return "Quarto cadastrado com sucesso!";
+        } else {
+            return "Erro ao cadastrar o quarto.";
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return "Erro ao inserir um novo quarto: " + e.getMessage();
+    } finally {
         try {
-            
-            String sql = "INSERT INTO quarto (numeroQuarto, diaria, tipo, disponivel) VALUES (?, ?, ?, 1)";
-            
-            stmt = conn.prepareStatement(sql);
-            
-            stmt.setInt(1, numeroQuarto); 
-            stmt.setBigDecimal(2, valorDiaria); 
-            stmt.setString(3, tipoQuarto); 
-            
-            int rowsAffected = stmt.executeUpdate();
-            
-            
-            if (rowsAffected > 0) {
-                return "Quarto cadastrado com sucesso!";
-            } else {
-                return "Erro ao cadastrar o quarto.";
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (rs != null) {
+                rs.close();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return "Erro ao inserir um novo quarto: " + e.getMessage();
-        } finally {
-            try {
-                
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
+}
 
     @Override
     public List<Reserva> listarReservas() throws RemoteException {
